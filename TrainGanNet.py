@@ -17,7 +17,7 @@ from torchvision import transforms, utils
 
 # from dataset import AirfoilDataset #can do a similar dataset object...
 from GanNet import Discriminator, Generator
-from utils import *
+# from utils import *
 from matplotlib import pyplot as plt
 
 #%%
@@ -28,14 +28,14 @@ def main():
     
       # hyperparameters
     latent_dim = 50 # please do not change latent dimension
-    lr_dis = 0.0002 # discriminator learning rate
-    lr_gen = 0.0003 # generator learning rate
+    lr_dis = 0.0001 # discriminator learning rate
+    lr_gen = 0.0004 # generator learning rate
     num_epochs = 100
     beta1 = 0.5 # beta1 value for Adam optimizer
     batch_sizeInput= 15 # Determine Batch Size
     
     
-    noise_fn = lambda x: torch.rand((x, latent_dim), device='cuda:0') # for random latent vector production
+    noise_fn = lambda x: torch.rand((x, latent_dim)) # for random latent vector production , device='cuda:0'
    
 
     
@@ -143,7 +143,7 @@ def main():
             optim_dis.step()
 
             # train generator
-            if(n_batch+1) % 2 == 1:
+            if(n_batch+1) % 3 == 1:
                 latent_vec = noise_fn(batch_sizeInput)
                 generated=gen.forward(latent_vec)
                 classify=dis.forward(generated)
@@ -167,6 +167,21 @@ def main():
                 Disc_FakeLoss.append(loss_fake.item())
                 TotalDiscriminatorLoss.append(loss_dis.item())
                 GeneratorLoss.append(loss_gen.item())
+                
+                if (epoch) % 33 == 0:
+                    plt.figure(6)
+                    plt.plot(range(len(TotalDiscriminatorLoss)), TotalDiscriminatorLoss, color='red', marker='o')
+                    plt.plot(range(len(GeneratorLoss)), GeneratorLoss, color='green', marker='o')
+                    plt.plot(range(len(Disc_RealLoss)), Disc_RealLoss, color='black', marker='o')
+                
+                    plt.plot(range(len(Disc_FakeLoss)), Disc_FakeLoss, color='blue', marker='o')
+                
+                    plt.title('Different Losses', fontsize=14)
+                    plt.xlabel('Epoch', fontsize=14)
+                    plt.ylabel('Loss', fontsize=14)
+                    plt.grid(True)
+                    plt.legend(["Total_Discriminator", "Generator" ,"Real Discri","Fake Discri"], loc ="lower right")
+                    plt.show()
                 
 #%%
 # =============================================================================
