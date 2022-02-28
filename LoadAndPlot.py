@@ -11,7 +11,7 @@ from torch.utils.data import Dataset, DataLoader
 import torchvision
 from torchvision import transforms, utils
 
-from GanNet import Discriminator, Generator
+from GanNetFor150by150 import Discriminator, Generator
 # from utils import *
 from matplotlib import pyplot as plt
 from torchvision.utils import make_grid
@@ -26,7 +26,7 @@ modelD = torch.load('Discriminator.pt',map_location=torch.device('cpu'))
 
 
 transform = transforms.Compose([ 
-transforms.Resize((300, 300)),
+transforms.Resize((150, 150)),
 transforms.ToTensor(),
 ])
 
@@ -36,7 +36,7 @@ data_set_test = torchvision.datasets.ImageFolder(root='bottle/test',transform=tr
 # airfoil_x = dataset.get_x()
 batch_sizeInput=8
 test_dataloader = DataLoader(data_set_test, batch_size=batch_sizeInput, shuffle=True)
-img_dim =300;
+img_dim =150;
     
 # test trained GAN model
 # num_samples = 100

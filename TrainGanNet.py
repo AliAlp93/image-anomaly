@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Feb 18 15:56:31 2022
-
+77332
 @author: alialp
 """
 
@@ -16,7 +16,7 @@ import torchvision
 from torchvision import transforms, utils
 
 # from dataset import AirfoilDataset #can do a similar dataset object...
-from GanNet import Discriminator, Generator
+from GanNet64by64 import Discriminator, Generator
 # from utils import *
 from matplotlib import pyplot as plt
 
@@ -36,12 +36,13 @@ def main():
     
     
     noise_fn = lambda x: torch.rand((x, latent_dim)) # for random latent vector production , device='cuda:0'
-   
+    fixed_noise = torch.randn(64, nz=100, 1, 1, device=device)
+
 
     
     ##DO WE WANT TO TRANSFORM THE DATA??
     transform = transforms.Compose([ 
-    transforms.Resize((300, 300)),
+    transforms.Resize((64, 64)),
     transforms.ToTensor(),
 ])
     
@@ -84,7 +85,7 @@ def main():
     # airfoil_x = dataset.get_x()
     
     traingood_dataloader = DataLoader(data_set_train, batch_size=batch_sizeInput, shuffle=True)
-    img_dim =300;
+    img_dim =64;
     
     target_ones = torch.ones((batch_sizeInput, 1)).to(device)
     target_zeros = torch.zeros((batch_sizeInput, 1)).to(device)
@@ -132,8 +133,8 @@ def main():
             
             with torch.no_grad():
                  fake_samples = gen.forward(latent_vec)
-            pred_fake = dis.forward(fake_samples)
-            loss_fake = criterion(pred_fake, target_zeros) ## A good working Discriminator should distinguish fake as a zero in the very beginning, After full training it is going to be %50 confidence, flip a coin as fake is similar to real
+                 pred_fake = dis.forward(fake_samples)
+                 loss_fake = criterion(pred_fake, target_zeros) ## A good working Discriminator should distinguish fake as a zero in the very beginning, After full training it is going to be %50 confidence, flip a coin as fake is similar to real
 
              # combine
             loss_dis = (loss_real + loss_fake) /2
@@ -143,7 +144,7 @@ def main():
             optim_dis.step()
 
             # train generator
-            if(n_batch+1) % 3 == 1:
+            if(n_batch+1) % 2 == 1:
                 latent_vec = noise_fn(batch_sizeInput)
                 generated=gen.forward(latent_vec)
                 classify=dis.forward(generated)
@@ -181,7 +182,9 @@ def main():
                     plt.ylabel('Loss', fontsize=14)
                     plt.grid(True)
                     plt.legend(["Total_Discriminator", "Generator" ,"Real Discri","Fake Discri"], loc ="lower right")
-                    plt.show()
+                    plt.show()                    
+                    plt.close()
+
                 
 #%%
 # =============================================================================
