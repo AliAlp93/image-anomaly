@@ -16,7 +16,7 @@ import torchvision
 from torchvision import transforms, utils
 
 # from dataset import AirfoilDataset #can do a similar dataset object...
-from GanNet64by64 import Discriminator, Generator
+from GanNetFor300by300 import Discriminator, Generator
 # from utils import *
 from matplotlib import pyplot as plt
 
@@ -24,25 +24,25 @@ from matplotlib import pyplot as plt
 def main():
     #%%
     # check if cuda available
-    device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-    
+    # device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+    device='cpu'
       # hyperparameters
-    latent_dim = 50 # please do not change latent dimension
-    lr_dis = 0.0001 # discriminator learning rate
+    latent_dim = 100 # please do not change latent dimension
+    lr_dis = 0.0003 # discriminator learning rate
     lr_gen = 0.0004 # generator learning rate
-    num_epochs = 100
-    beta1 = 0.5 # beta1 value for Adam optimizer
+    num_epochs = 25
+    beta1 = 0.8 # beta1 value for Adam optimizer
     batch_sizeInput= 15 # Determine Batch Size
     
     
     noise_fn = lambda x: torch.rand((x, latent_dim)) # for random latent vector production , device='cuda:0'
-    fixed_noise = torch.randn(64, nz=100, 1, 1, device=device)
+    # fixed_noise = torch.randn(300, nz=100, 1, 1, device=device)
 
 
     
     ##DO WE WANT TO TRANSFORM THE DATA??
     transform = transforms.Compose([ 
-    transforms.Resize((64, 64)),
+    transforms.Resize((300, 300)),
     transforms.ToTensor(),
 ])
     
@@ -85,7 +85,7 @@ def main():
     # airfoil_x = dataset.get_x()
     
     traingood_dataloader = DataLoader(data_set_train, batch_size=batch_sizeInput, shuffle=True)
-    img_dim =64;
+    img_dim =300;
     
     target_ones = torch.ones((batch_sizeInput, 1)).to(device)
     target_zeros = torch.zeros((batch_sizeInput, 1)).to(device)
@@ -161,7 +161,7 @@ def main():
                 optim_gen.step()
 
             # print loss while training
-            if (n_batch ) % 91 == 0:
+            if (n_batch ) % 13 == 0:
                 print("Epoch: [{}/{}], Batch: {}, Discriminator loss: {}, Generator loss: {}, Disc Fake loss:{} , Disc real Loss:{}".format(
                     epoch, num_epochs, n_batch, loss_dis.item(), loss_gen.item(),loss_real.item(),loss_fake.item()))
                 Disc_RealLoss.append(loss_real.item())

@@ -1,0 +1,13 @@
+You can access the images as plt.imshow(data_sets[1][0]), the first index is the image number, the second is 0.
+it is tuple (immutable meaning cannot be changed). the first element is the image [1][0], the second is the label [1][1]
+IPdb [10]: data_sets[69][1]
+0
+
+IPdb [11]: data_sets[200][1]
+1
+
+#In deep learning, the picture data is generally saved as cxhxw, that is, the number of channels x the picture height x the picture width
+#print(dataset[0][0].size())
+
+IPdb [16]: type(data_sets[1][0])
+<class 'PIL.Image.Image'>

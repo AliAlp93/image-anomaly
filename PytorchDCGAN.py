@@ -22,25 +22,25 @@ from matplotlib import pyplot as plt
 # dataroot = "data/celeba"
 # Number of workers for dataloader
 workers = 0
-# Batch size during training
-batch_size = 128
+
 # Spatial size of training images. All images will be resized to this
 #   size using a transformer.
 image_size = 64
 # Number of channels in the training images. For color images this is 3
 nc = 3
 # Size of z latent vector (i.e. size of generator input)
-nz = 100
+nz = 400
 # Size of feature maps in generator
 ngf = 64
 # Size of feature maps in discriminator
-ndf = 64
+ndf = 200
 # Number of training epochs
 num_epochs = 5
 # Learning rate for optimizers
-lr = 0.0002
+lrG= 0.01
+lrD= 0.00002
 # Beta1 hyperparam for Adam optimizers
-beta1 = 0.5
+beta1 = 0.8
 # Number of GPUs available. Use 0 for CPU mode.
 ngpu = 1
 batchSize=15
@@ -69,9 +69,9 @@ device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 def weights_init(m):
     classname = m.__class__.__name__
     if classname.find('Conv') != -1:
-        torch.nn.init.normal_(m.weight, 0.0, 0.02)
+        torch.nn.init.normal_(m.weight, 0.0, 0.03)
     elif classname.find('BatchNorm') != -1:
-        torch.nn.init.normal_(m.weight, 1.0, 0.02)
+        torch.nn.init.normal_(m.weight, 1.0, 0.03)
         torch.nn.init.zeros_(m.bias)
 
 
@@ -98,7 +98,7 @@ class Generator(nn.Module):
             nn.ReLU(True),
             # state size. (ngf) x 32 x 32
             nn.ConvTranspose2d(    ngf,      nc, 4, 2, 1, bias=False),
-            nn.Sigmoid()
+            nn.Tanh()
             # state size. (nc) x 64 x 64
         )
 
@@ -164,8 +164,11 @@ real_label = 1
 fake_label = 0
 
 # setup optimizer
-optimizerD = optim.Adam(netD.parameters(), lr=lr, betas=(beta1, 0.999))
-optimizerG = optim.Adam(netG.parameters(), lr=lr, betas=(beta1, 0.999))
+optimizerD = optim.Adam(netD.parameters(), lr=lrD, betas=(beta1, 0.999))
+optimizerG = optim.Adam(netG.parameters(), lr=lrG, betas=(beta1, 0.999))
+# optimizer=optim.SGD(model.parameters(),lr=0.1,momentum=0.8)
+schedulerD = torch.optim.lr_scheduler.MultiStepLR(optimizerD, milestones=[10, 30], gamma=0.2) #LR will decay by a factor of 0.1 at 150 and 200 epoch
+schedulerG = torch.optim.lr_scheduler.MultiStepLR(optimizerG, milestones=[10, 20,30], gamma=0.1) #LR will decay by a factor of 0.1 at 150 and 200 epoch
 
 # if dry_run:
 #     niter = 1
@@ -177,6 +180,8 @@ D_RealEpochs=[]
 D_FakeEpochs=[]
 
 for epoch in range(niter):
+    schedulerD.step()
+    schedulerG.step()
     for i, data in enumerate(dataloader, 0):
         ############################
         # (1) Update D network: maximize log(D(x)) + log(1 - D(G(z)))
@@ -207,6 +212,8 @@ for epoch in range(niter):
         ############################
         # (2) Update G network: maximize log(D(G(z)))
         ###########################
+        # if(i+1) % 2 == 1:
+
         netG.zero_grad()
         label.fill_(real_label)  # fake labels are real for generator cost
         output = netD(fake)
