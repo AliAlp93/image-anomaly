@@ -67,9 +67,9 @@ device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 # ngf = int(opt.ngf)
 # ndf = int(opt.ndf)
 
-latent_dim = 100 # please do not change latent dimension
-lr = 0.0004    # learning rate
-num_epochs = 600
+latent_dim = 10 # please do not change latent dimension
+lr = 0.0006    # learning rate
+num_epochs = 1200
 beta1=0.7
 
 KL_Loss=[]
@@ -89,9 +89,11 @@ fixed_noise = torch.randn(batchSize, nz, 1, 1, device=device)
 
 # define optimizer for discriminator and generator separately
 optim = optim.Adam(vae.parameters(), lr=lr,betas=(beta1, 0.999))
-schedulerD = torch.optim.lr_scheduler.MultiStepLR(optim, milestones=[20, 120, 180, 270], gamma=0.5) #LR will decay by a factor of 0.1 at 150 and 200 epoch
+scheduler = torch.optim.lr_scheduler.MultiStepLR(optim, milestones=[10,20, 120, 180, 270, 330], gamma=0.5) #LR will decay by a factor of 0.1 at 150 and 200 epoch
 
 for epoch in range(num_epochs):
+        scheduler.step()
+
         for n_batch, (local_batch, __) in enumerate(traingood_dataloader):
             y_real = local_batch.to(device)
             
@@ -101,7 +103,17 @@ for epoch in range(num_epochs):
             #KL-Divergence = 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
             KLD = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())#/y_real.size(0) # 0.5 is incorporated as alpha in front of KL divergence
             similarityLoss = criterion(trainigConstructX.to(device), y_real)
-            alpha=0.001
+            
+            if epoch<3:
+                alpha=0 
+            if epoch>3 and epoch<11:
+                alpha=0.1
+            if epoch>11 and epoch<21:
+                alpha=0.5
+            if epoch>21:
+                alpha=0.9
+            
+            
             loss = (similarityLoss + alpha* KLD) ##/y_real.size(0)
             # loss=similarityLoss
     
